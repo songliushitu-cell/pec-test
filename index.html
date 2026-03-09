@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>骨盆压缩模式评估系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 隐藏数字输入框的上下箭头 */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* 结果区域的平滑展开动画 */
+        .slide-down {
+            animation: slideDown 0.4s ease-out forwards;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col items-center justify-center min-h-screen p-4 font-sans selection:bg-indigo-200">
+
+    <!-- 主容器 -->
+    <div class="max-w-lg w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col my-8">
+        
+        <!-- 头部标题区 -->
+        <div class="bg-slate-800 px-8 py-6 text-center relative">
+            <h1 class="text-2xl font-bold text-white mb-2">骨盆前倾 (PEC) 评估</h1>
+            <p class="text-slate-300 text-sm">请输入您较差一侧的关节活动角度</p>
+            <!-- 专属标记 -->
+            <div class="absolute top-4 right-6 text-slate-500/50 text-xs font-bold tracking-widest cursor-default">
+                @宋教头
+            </div>
+        </div>
+
+        <!-- 表单输入区 -->
+        <div class="p-8 pb-6 flex flex-col gap-6">
+            
+            <!-- 输入项 1：直抬腿 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1" for="slr">
+                    1. 主动直腿抬高 (Straight Leg Raise)
+                </label>
+                <p class="text-xs text-slate-400 mb-2">💡 提示：仰卧平躺，保持膝盖伸直，单腿向上抬起的最大角度。</p>
+                <div class="relative">
+                    <input type="number" id="slr" placeholder="例如：45" min="0" max="180" class="w-full p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg bg-slate-50 text-slate-800 transition-shadow">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">度</span>
+                </div>
+            </div>
+
+            <!-- 输入项 2：髋屈曲 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1" for="hip">
+                    2. 主动髋屈曲 (Hip Flexion)
+                </label>
+                <p class="text-xs text-slate-400 mb-2">💡 提示：仰卧平躺，屈膝将大腿尽可能贴近胸口的最大角度。</p>
+                <div class="relative">
+                    <input type="number" id="hip" placeholder="例如：110" min="0" max="180" class="w-full p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg bg-slate-50 text-slate-800 transition-shadow">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">度</span>
+                </div>
+            </div>
+
+            <!-- 输入项 3：肩部屈曲 -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1" for="shoulder">
+                    3. 主动肩部屈曲 (Shoulder Flexion)
+                </label>
+                <p class="text-xs text-slate-400 mb-2">💡 提示：仰卧平躺，手臂伸直向后举过头顶，手臂与身体的最大角度。</p>
+                <div class="relative">
+                    <input type="number" id="shoulder" placeholder="例如：90" min="0" max="180" class="w-full p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg bg-slate-50 text-slate-800 transition-shadow">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">度</span>
+                </div>
+            </div>
+
+            <!-- 错误提示信息 -->
+            <div id="error-msg" class="hidden text-rose-500 text-sm font-bold text-center bg-rose-50 py-3 rounded-xl border border-rose-100">
+                请填写完整的三个角度数值哦！
+            </div>
+
+            <!-- 评估按钮 -->
+            <button id="calc-btn" class="w-full mt-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg transition-colors shadow-lg shadow-indigo-200 active:scale-[0.98] transform duration-150">
+                获取诊断结果
+            </button>
+        </div>
+
+        <!-- 结果展示区 (默认隐藏) -->
+        <div id="result-section" class="hidden bg-slate-50 border-t border-slate-100 p-8 flex flex-col items-center">
+            
+            <p class="text-slate-500 text-sm mb-1">根据您的评估结果，您属于</p>
+            
+            <!-- 结果大字 -->
+            <h2 id="result-title" class="text-3xl font-black text-indigo-700 mb-4 tracking-wide">
+                A: 后侧紧张
+            </h2>
+            
+            <!-- 结果原理解释 -->
+            <p id="result-desc" class="text-slate-600 text-center text-sm leading-relaxed mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                骨盆后部肌肉组织的紧绷(压迫)使骨盆向前“推”。
+            </p>
+
+            <!-- 详细判定依据 -->
+            <div class="w-full flex flex-col gap-3 mb-8">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">匹配细节 (三局两胜)</h3>
+                
+                <div class="flex items-center justify-between text-sm p-3 rounded-lg bg-white border border-slate-100 shadow-sm">
+                    <span class="text-slate-600 font-bold">直抬腿 <span id="val-slr" class="text-slate-400 ml-1 font-normal">45°</span></span>
+                    <span id="match-slr" class="font-bold text-emerald-500 flex items-center gap-1"></span>
+                </div>
+                
+                <div class="flex items-center justify-between text-sm p-3 rounded-lg bg-white border border-slate-100 shadow-sm">
+                    <span class="text-slate-600 font-bold">髋屈曲 <span id="val-hip" class="text-slate-400 ml-1 font-normal">110°</span></span>
+                    <span id="match-hip" class="font-bold text-emerald-500 flex items-center gap-1"></span>
+                </div>
+
+                <div class="flex items-center justify-between text-sm p-3 rounded-lg bg-white border border-slate-100 shadow-sm">
+                    <span class="text-slate-600 font-bold">肩屈曲 <span id="val-shoulder" class="text-slate-400 ml-1 font-normal">90°</span></span>
+                    <span id="match-shoulder" class="font-bold text-rose-400 flex items-center gap-1"></span>
+                </div>
+            </div>
+
+            <!-- 动态推荐训练计划区 (闭环强化) -->
+            <div class="w-full flex flex-col gap-3">
+                <h3 class="text-sm font-bold text-slate-700 mb-1 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    推荐训练计划 (第1-2周)
+                </h3>
+                <ul id="exercise-list" class="text-sm text-slate-600 space-y-2 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                    <!-- JS动态填充 -->
+                </ul>
+            </div>
+            
+            <button id="reset-btn" class="mt-8 text-sm text-indigo-500 font-bold hover:text-indigo-700 underline underline-offset-4 transition-colors">
+                重新测试
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const btnCalc = document.getElementById('calc-btn');
+        const btnReset = document.getElementById('reset-btn');
+        const inputSlr = document.getElementById('slr');
+        const inputHip = document.getElementById('hip');
+        const inputShoulder = document.getElementById('shoulder');
+        const errorMsg = document.getElementById('error-msg');
+        const resultSection = document.getElementById('result-section');
+        
+        // 结果元素
+        const resultTitle = document.getElementById('result-title');
+        const resultDesc = document.getElementById('result-desc');
+        const valSlr = document.getElementById('val-slr');
+        const valHip = document.getElementById('val-hip');
+        const valShoulder = document.getElementById('val-shoulder');
+        const matchSlr = document.getElementById('match-slr');
+        const matchHip = document.getElementById('match-hip');
+        const matchShoulder = document.getElementById('match-shoulder');
+        const exerciseList = document.getElementById('exercise-list');
+
+        // 生成通过与不通过的HTML标签
+        const iconPass = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        const iconFail = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+
+        // 计算逻辑
+        btnCalc.addEventListener('click', () => {
+            const slr = parseFloat(inputSlr.value);
+            const hip = parseFloat(inputHip.value);
+            const shoulder = parseFloat(inputShoulder.value);
+
+            // 1. 验证输入是否为空
+            if (isNaN(slr) || isNaN(hip) || isNaN(shoulder)) {
+                showError("请填写完整的三个角度数值哦！");
+                return;
+            }
+
+            // 2. 验证输入范围（生理极限，通常都在0-180度之间）
+            if (slr < 0 || slr > 180 || hip < 0 || hip > 180 || shoulder < 0 || shoulder > 180) {
+                showError("请输入 0° 到 180° 之间的合理角度！");
+                return;
+            }
+
+            errorMsg.classList.add('hidden');
+
+            // 计分板
+            let posteriorScore = 0;
+            let anteriorScore = 0;
+
+            // 处理逻辑与临界值： <= 50 后压, > 50 前压
+            let slrPost = false;
+            if (slr <= 50) { posteriorScore++; slrPost = true; }
+            else { anteriorScore++; }
+
+            // 髋屈曲 (Hip): >= 100 后压, < 100 前压
+            let hipPost = false;
+            if (hip >= 100) { posteriorScore++; hipPost = true; }
+            else { anteriorScore++; }
+
+            // 肩部屈曲 (Shoulder): <= 100 后压, > 100 前压
+            let shoulderPost = false;
+            if (shoulder <= 100) { posteriorScore++; shoulderPost = true; }
+            else { anteriorScore++; }
+
+            // 综合判定 (三局两胜)
+            const isPosterior = posteriorScore >= 2;
+
+            // 渲染结果文字和训练清单
+            if (isPosterior) {
+                resultTitle.innerText = "方案 A: 后侧紧张";
+                resultTitle.className = "text-3xl font-black text-indigo-600 mb-4 tracking-wide";
+                resultDesc.innerText = "骨盆后部肌肉组织的紧绷(压迫)使骨盆向前“推”。根据您的结果，建议遵循方案A的训练计划。";
+                
+                // 渲染方案A的专属动作
+                exerciseList.innerHTML = `
+                    <li class="flex items-start gap-2"><span class="font-bold text-indigo-400">1.</span> 钩卧腘绳肌臀桥 (Hooklying Hamstring Bridge) - 恢复髋部和肩部屈伸</li>
+                    <li class="flex items-start gap-2"><span class="font-bold text-indigo-400">2.</span> 门框背阔肌拉伸 (Doorframe Lat Stretch) - 释放背阔肌，推动骨盆后倾</li>
+                    <li class="flex items-start gap-2"><span class="font-bold text-indigo-400">3.</span> 墙支撑伸展 (Wall Supported Reach) - 重新训练横膈膜呼吸</li>
+                `;
+            } else {
+                resultTitle.innerText = "方案 B: 前侧紧张";
+                resultTitle.className = "text-3xl font-black text-teal-600 mb-4 tracking-wide";
+                resultDesc.innerText = "骨盆前侧肌肉组织更紧绷(受压)，将骨盆“向前拉”。根据您的结果，建议遵循方案B的训练计划。";
+                
+                // 渲染方案B的专属动作
+                exerciseList.innerHTML = `
+                    <li class="flex items-start gap-2"><span class="font-bold text-teal-500">1.</span> 90/90 侧支撑伸手 (90/90 Side Plank with Reach) - 使用侧腹肌呼吸</li>
+                    <li class="flex items-start gap-2"><span class="font-bold text-teal-500">2.</span> 钩卧腘绳肌臀桥 (Hooklying Hamstring Bridge) - 恢复髋关节与肩部屈曲</li>
+                    <li class="flex items-start gap-2"><span class="font-bold text-teal-500">3.</span> 仰卧交叉交替 (Supine Cross-Connects) - 伸展臀部并恢复屈曲</li>
+                `;
+            }
+
+            // 更新数值显示
+            valSlr.innerText = `${slr}°`;
+            valHip.innerText = `${hip}°`;
+            valShoulder.innerText = `${shoulder}°`;
+
+            // 更新细节匹配情况渲染
+            if (isPosterior) {
+                updateMatchUI(matchSlr, slrPost, "符合后侧紧张 (≤50°)", "偏向前侧紧张 (>50°)");
+                updateMatchUI(matchHip, hipPost, "符合后侧紧张 (≥100°)", "偏向前侧紧张 (<100°)");
+                updateMatchUI(matchShoulder, shoulderPost, "符合后侧紧张 (≤100°)", "偏向前侧紧张 (>100°)");
+            } else {
+                updateMatchUI(matchSlr, !slrPost, "符合前侧紧张 (>50°)", "偏向后侧紧张 (≤50°)");
+                updateMatchUI(matchHip, !hipPost, "符合前侧紧张 (<100°)", "偏向后侧紧张 (≥100°)");
+                updateMatchUI(matchShoulder, !shoulderPost, "符合前侧紧张 (>100°)", "偏向后侧紧张 (≤100°)");
+            }
+
+            // 显示结果并增加动画
+            resultSection.classList.remove('hidden');
+            resultSection.classList.remove('slide-down');
+            void resultSection.offsetWidth; // 触发重绘
+            resultSection.classList.add('slide-down');
+            
+            // 滚动到结果区域
+            setTimeout(() => {
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        });
+
+        // 辅助显示报错
+        function showError(msg) {
+            errorMsg.innerText = msg;
+            errorMsg.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+        }
+
+        // 辅助更新UI函数
+        function updateMatchUI(element, isMatch, passText, failText) {
+            if (isMatch) {
+                element.className = "font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-md";
+                element.innerHTML = `${iconPass} ${passText}`;
+            } else {
+                element.className = "font-bold text-rose-400 flex items-center gap-1 bg-rose-50 px-2 py-1 rounded-md";
+                element.innerHTML = `${iconFail} ${failText}`;
+            }
+        }
+
+        // 重新测试
+        btnReset.addEventListener('click', () => {
+            inputSlr.value = '';
+            inputHip.value = '';
+            inputShoulder.value = '';
+            resultSection.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
